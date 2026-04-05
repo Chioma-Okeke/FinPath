@@ -88,17 +88,6 @@ class _AIAssistantSheetState extends State<AIAssistantSheet> {
           _Message(
             text: answer,
             isUser: false,
-            suggestions: isEs
-                ? [
-                    'Cuéntame más',
-                    '¿Cómo me afecta?',
-                    '¿Qué hago a continuación?',
-                  ]
-                : [
-                    'Tell me more',
-                    'How does this affect me?',
-                    'What should I do next?',
-                  ],
           ),
         );
       });
