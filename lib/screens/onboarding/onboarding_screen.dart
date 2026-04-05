@@ -14,6 +14,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  
   int _currentPage = 0;
   bool _isLoading = false;
 
@@ -25,7 +26,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isInternational = false;
   String? _countryOfOrigin;
   String? _entryRoute;
-  late final TextEditingController _countrySearchController;
 
   // Q2 — Income Sources
   final Set<String> _incomeSources = {};
@@ -44,6 +44,202 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const int _totalPages = 6;
   static const int _lastPageIndex = _totalPages - 1;
+  static const List<String> _allCountries = [
+    'Afghanistan',
+    'Albania',
+    'Algeria',
+    'Andorra',
+    'Angola',
+    'Antigua and Barbuda',
+    'Argentina',
+    'Armenia',
+    'Australia',
+    'Austria',
+    'Azerbaijan',
+    'Bahamas',
+    'Bahrain',
+    'Bangladesh',
+    'Barbados',
+    'Belarus',
+    'Belgium',
+    'Belize',
+    'Benin',
+    'Bhutan',
+    'Bolivia',
+    'Bosnia and Herzegovina',
+    'Botswana',
+    'Brazil',
+    'Brunei',
+    'Bulgaria',
+    'Burkina Faso',
+    'Burundi',
+    'Cabo Verde',
+    'Cambodia',
+    'Cameroon',
+    'Canada',
+    'Central African Republic',
+    'Chad',
+    'Chile',
+    'China',
+    'Colombia',
+    'Comoros',
+    'Congo',
+    'Costa Rica',
+    'Croatia',
+    'Cuba',
+    'Cyprus',
+    'Czech Republic',
+    'Democratic Republic of the Congo',
+    'Denmark',
+    'Djibouti',
+    'Dominica',
+    'Dominican Republic',
+    'Ecuador',
+    'Egypt',
+    'El Salvador',
+    'Equatorial Guinea',
+    'Eritrea',
+    'Estonia',
+    'Eswatini',
+    'Ethiopia',
+    'Fiji',
+    'Finland',
+    'France',
+    'Gabon',
+    'Gambia',
+    'Georgia',
+    'Germany',
+    'Ghana',
+    'Greece',
+    'Grenada',
+    'Guatemala',
+    'Guinea',
+    'Guinea-Bissau',
+    'Guyana',
+    'Haiti',
+    'Honduras',
+    'Hungary',
+    'Iceland',
+    'India',
+    'Indonesia',
+    'Iran',
+    'Iraq',
+    'Ireland',
+    'Israel',
+    'Italy',
+    'Jamaica',
+    'Japan',
+    'Jordan',
+    'Kazakhstan',
+    'Kenya',
+    'Kiribati',
+    'Kuwait',
+    'Kyrgyzstan',
+    'Laos',
+    'Latvia',
+    'Lebanon',
+    'Lesotho',
+    'Liberia',
+    'Libya',
+    'Liechtenstein',
+    'Lithuania',
+    'Luxembourg',
+    'Madagascar',
+    'Malawi',
+    'Malaysia',
+    'Maldives',
+    'Mali',
+    'Malta',
+    'Marshall Islands',
+    'Mauritania',
+    'Mauritius',
+    'Mexico',
+    'Micronesia',
+    'Moldova',
+    'Monaco',
+    'Mongolia',
+    'Montenegro',
+    'Morocco',
+    'Mozambique',
+    'Myanmar',
+    'Namibia',
+    'Nauru',
+    'Nepal',
+    'Netherlands',
+    'New Zealand',
+    'Nicaragua',
+    'Niger',
+    'Nigeria',
+    'North Korea',
+    'North Macedonia',
+    'Norway',
+    'Oman',
+    'Pakistan',
+    'Palau',
+    'Palestine',
+    'Panama',
+    'Papua New Guinea',
+    'Paraguay',
+    'Peru',
+    'Philippines',
+    'Poland',
+    'Portugal',
+    'Qatar',
+    'Romania',
+    'Russia',
+    'Rwanda',
+    'Saint Kitts and Nevis',
+    'Saint Lucia',
+    'Saint Vincent and the Grenadines',
+    'Samoa',
+    'San Marino',
+    'Sao Tome and Principe',
+    'Saudi Arabia',
+    'Senegal',
+    'Serbia',
+    'Seychelles',
+    'Sierra Leone',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'Solomon Islands',
+    'Somalia',
+    'South Africa',
+    'South Korea',
+    'South Sudan',
+    'Spain',
+    'Sri Lanka',
+    'Sudan',
+    'Suriname',
+    'Sweden',
+    'Switzerland',
+    'Syria',
+    'Tajikistan',
+    'Tanzania',
+    'Thailand',
+    'Timor-Leste',
+    'Togo',
+    'Tonga',
+    'Trinidad and Tobago',
+    'Tunisia',
+    'Turkey',
+    'Turkmenistan',
+    'Tuvalu',
+    'Uganda',
+    'Ukraine',
+    'United Arab Emirates',
+    'United Kingdom',
+    'United States',
+    'Uruguay',
+    'Uzbekistan',
+    'Vanuatu',
+    'Vatican City',
+    'Venezuela',
+    'Vietnam',
+    'Yemen',
+    'Zambia',
+    'Zimbabwe',
+  ];
 
   bool get _isSpanish => widget.language == 'es';
   String _t(String en, String es) => _isSpanish ? es : en;
@@ -52,8 +248,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _lifeSituations.contains('full_time_student') ||
       _lifeSituations.contains('student_working');
 
-  bool get _immigrantSelected => _lifeSituations.contains('new_to_country');
-
   bool get _hasFullAndPartTime =>
       _incomeSources.contains('full_time_employment') &&
       _incomeSources.contains('part_time_job');
@@ -61,7 +255,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    _countrySearchController = TextEditingController();
     _loadOptions();
   }
 
@@ -263,6 +456,53 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (key.contains('self_employ') || key.contains('gig') || key.contains('freelance')) return Icons.handyman_rounded;
     if (key.contains('family') || key.contains('staying')) return Icons.home_rounded;
     return Icons.person_rounded;
+  }
+
+  Widget _buildCountryDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _countryOfOrigin,
+      isExpanded: true,
+      decoration: InputDecoration(
+        hintText: _t('Select country', 'Selecciona un país'),
+        filled: true,
+        fillColor: const Color(0xFFF5F5F5),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Color(0xFF1A7A6E),
+            width: 1.5,
+          ),
+        ),
+      ),
+      items: _allCountries
+          .map(
+            (country) => DropdownMenuItem<String>(
+              value: country,
+              child: Text(
+                country,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          _countryOfOrigin = value;
+        });
+      },
+    );
   }
 
   Widget _buildLifeSituationPage() {
@@ -544,7 +784,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildStudentSubOptions() {
+    Widget _buildStudentSubOptions() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Column(
@@ -575,10 +815,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onTap: () => setState(() {
                   _isInternational = false;
                   _countryOfOrigin = null;
+                  _countrySearchController.clear();
                 }),
               ),
             ],
           ),
+          if (_isInternational) ...[
+            const SizedBox(height: 14),
+            Text(
+              _t('COUNTRY OF ORIGIN', 'PAÍS DE ORIGEN'),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildCountryDropdown(),
+          ],
         ],
       ),
     );
@@ -630,30 +885,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: _countrySearchController,
-            decoration: InputDecoration(
-              hintText: _t('Search country...', 'Buscar país...'),
-              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-              suffixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
-              filled: true,
-              fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF1A7A6E), width: 1.5),
-              ),
-            ),
-            onChanged: (v) => setState(() => _countryOfOrigin = v.trim().isEmpty ? null : v.trim()),
-          ),
+          _buildCountryDropdown(),
           const SizedBox(height: 14),
           Text(
             _t('ENTRY ROUTE', 'RUTA DE ENTRADA'),

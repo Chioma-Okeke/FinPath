@@ -4,6 +4,7 @@ import 'package:finpath/models/resource.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
+import 'package:finpath/models/refreshed_snapshot.dart';
 
 class ApiService {
   static const String _baseUrl = 'https://finpath-nx82.onrender.com';
@@ -243,6 +244,17 @@ class ApiService {
     }
 
     return data;
+  }
+
+  static Future<RefreshedSnapshot> refreshSnapshot() async {
+    final res = await _authorizedPost('/snapshot/refresh');
+
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      return RefreshedSnapshot.fromJson(data);
+    }
+
+    throw Exception('Failed to refresh snapshot: ${res.body}');
   }
 
   // ---------------------------
