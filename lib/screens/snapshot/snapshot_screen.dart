@@ -32,21 +32,35 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
     try {
       final snapshotData = await ApiService.getSnapshot();
       final actionsData = await ApiService.getActions();
+      // print(" snapshot");
+      // print(snapshotData);
+
+      // print(actionsData);
+      // print("actionsData");
+
+      debugPrint('SNAPSHOT RESPONSE: $snapshotData');
+      debugPrint('ACTIONS RESPONSE: $actionsData');
 
       if (!mounted) return;
       final appState = context.read<AppState>();
       appState.setSnapshot(Snapshot.fromJson(snapshotData));
       appState.setActions(
-          actionsData.map((a) => ActionItem.fromJson(a)).toList());
-    } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load your data. Is the server running?');
+        actionsData.map((a) => ActionItem.fromJson(a)).toList(),
+      );
+    } catch (e, stack) {
+      debugPrint('SNAPSHOT ERROR: $e');
+      debugPrint('STACK: $stack');
+      if (mounted) {
+        setState(
+          () => _error = 'Could not load your data. Is the server running?',
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  bool get _isSpanish =>
-      context.read<AppState>().language == 'es';
+  bool get _isSpanish => context.read<AppState>().language == 'es';
 
   String _t(String en, String es) => _isSpanish ? es : en;
 
@@ -72,17 +86,14 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
         foregroundColor: Colors.white,
         title: Text(_t('My Financial Snapshot', 'Mi Perfil Financiero')),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildError()
-              : _buildContent(),
+          ? _buildError()
+          : _buildContent(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAIAssistant(context),
         backgroundColor: const Color(0xFFE8B84B),
@@ -182,18 +193,17 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     snapshot.riskLevel,
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(color: color, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -209,14 +219,16 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: Colors.red, size: 18),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       snapshot.biggestRisk,
-                      style: const TextStyle(
-                          color: Colors.red, fontSize: 13),
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
                     ),
                   ),
                 ],
@@ -274,8 +286,7 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color:
-                            covered ? Colors.green[800] : Colors.red[800],
+                        color: covered ? Colors.green[800] : Colors.red[800],
                       ),
                     ),
                   ),
@@ -313,10 +324,12 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        ...actions.take(3).map((action) => _ActionPreviewTile(
-              action: action,
-              isSpanish: _isSpanish,
-            )),
+        ...actions
+            .take(3)
+            .map(
+              (action) =>
+                  _ActionPreviewTile(action: action, isSpanish: _isSpanish),
+            ),
       ],
     );
   }
@@ -381,8 +394,9 @@ class _ActionPreviewTile extends StatelessWidget {
                 color: action.isCompleted
                     ? Colors.grey
                     : const Color(0xFF333333),
-                decoration:
-                    action.isCompleted ? TextDecoration.lineThrough : null,
+                decoration: action.isCompleted
+                    ? TextDecoration.lineThrough
+                    : null,
               ),
             ),
           ),

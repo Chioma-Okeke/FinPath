@@ -1,5 +1,6 @@
 class ActionItem {
   final int id;
+  final String key;
   final String title;
   final String description;
   final String educationCard;
@@ -9,6 +10,7 @@ class ActionItem {
 
   ActionItem({
     required this.id,
+    required this.key,
     required this.title,
     required this.description,
     required this.educationCard,
@@ -18,14 +20,21 @@ class ActionItem {
   });
 
   factory ActionItem.fromJson(Map<String, dynamic> json) {
+    // backend uses 'key' (string) as identifier, no numeric id
+    final keyStr = json['key'] as String? ?? '';
+    final id = json['id'] is int
+        ? json['id'] as int
+        : keyStr.hashCode;
+
     return ActionItem(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
+      id: id,
+      key: keyStr,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
       educationCard: json['education_card'] ?? '',
-      productLink: json['product_link'],
+      productLink: json['statefarm_product'] ?? json['product_link'],
       priority: json['priority'] ?? 1,
-      isCompleted: json['is_completed'] ?? false,
+      isCompleted: json['completed'] ?? json['is_completed'] ?? false,
     );
   }
 }

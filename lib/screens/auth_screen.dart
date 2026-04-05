@@ -59,8 +59,6 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
 
-      debugPrint('API response: $res');
-
       if (!mounted) return;
 
       final token = res['token'] ?? res['access_token'];

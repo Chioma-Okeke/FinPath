@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:finpath/models/onboarding_options_response.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
@@ -77,7 +78,16 @@ class ApiService {
       Uri.parse('$_baseUrl/actions'),
       headers: await _authHeaders(),
     );
-    return jsonDecode(res.body);
+    final decoded = jsonDecode(res.body);
+    debugPrint('ACTIONS RAW: $decoded');
+    if (decoded is List) return decoded;
+    if (decoded is Map) {
+      // Handle wrapped responses: {"actions": [...]} or {"data": [...]}
+      for (final key in ['actions', 'data', 'items', 'results']) {
+        if (decoded[key] is List) return decoded[key] as List<dynamic>;
+      }
+    }
+    return [];
   }
 
   static Future<Map<String, dynamic>> completeAction(int actionId) async {
