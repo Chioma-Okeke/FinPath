@@ -180,11 +180,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         label: t('Language', 'Idioma'),
                         onTap: () => _showLanguageModal(context, appState, t),
                       ),
-                      _MenuItem(
-                        icon: Icons.people_rounded,
-                        label: t('Community', 'Comunidad'),
-                        onTap: () {},
-                      ),
+                      // _MenuItem(
+                      //   icon: Icons.people_rounded,
+                      //   label: t('Community', 'Comunidad'),
+                      //   onTap: () {},
+                      // ),
                       _MenuItem(
                         icon: Icons.menu_book_rounded,
                         label: t('Resources', 'Recursos'),
@@ -213,7 +213,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             foregroundColor: const Color(0xFFD94F3D),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(18),
                             ),
                           ),
                           child: Row(
