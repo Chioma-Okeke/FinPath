@@ -271,6 +271,28 @@ class ApiService {
 
     return [];
   }
+  static Future<List<dynamic>> getCompletedActions () async {
+    final res = await _authorizedGet('/actions/completed');
+
+    if (res.statusCode == 401) {
+      throw Exception('Session expired. Please log in again.');
+    }
+
+    final decoded = jsonDecode(res.body);
+    debugPrint('ACTIONS RAW: $decoded');
+
+    if (decoded is List) return decoded;
+
+    if (decoded is Map<String, dynamic>) {
+      for (final key in ['actions', 'data', 'items', 'results']) {
+        if (decoded[key] is List) {
+          return decoded[key] as List<dynamic>;
+        }
+      }
+    }
+
+    return [];
+  }
 
   static Future<Map<String, dynamic>> completeAction(String actionKey) async {
     final res = await _authorizedPatch(

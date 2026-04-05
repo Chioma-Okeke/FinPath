@@ -206,37 +206,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         label: t('Support', 'Soporte'),
                         onTap: () {},
                       ),
-
-                      const SizedBox(height: 32),
-
-                      // Logout
-                      SizedBox(
-                        width: double.infinity,
-                        child: TextButton(
-                          onPressed: () => _logout(context, t),
-                          style: TextButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFECEA),
-                            foregroundColor: const Color(0xFFD94F3D),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.logout_rounded, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                t('Log Out', 'Cerrar Sesión'),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      _MenuItem(
+                        icon: Icons.logout_rounded,
+                        label: t('Log out', 'Cerrar Sesión'),
+                        labelColor: Color.fromRGBO(250, 0, 0, 1),
+                        iconColor: Color.fromRGBO(250, 0, 0, 1),
+                        onTap: () {
+                          _logout(context, t);
+                        },
                       ),
                     ],
                   ),
@@ -304,11 +281,15 @@ class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color? labelColor;
+  final Color? iconColor;
 
   const _MenuItem({
     required this.icon,
     required this.label,
     required this.onTap,
+    this.labelColor,
+    this.iconColor,
   });
 
   @override
@@ -322,14 +303,14 @@ class _MenuItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFF1A7A6E), size: 24),
+              Icon(icon, color: iconColor ?? const Color(0xFF1A7A6E), size: 24),
               const SizedBox(width: 18),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF1A1A1A),
+                  color: labelColor ?? const Color(0xFF1A1A1A),
                 ),
               ),
             ],

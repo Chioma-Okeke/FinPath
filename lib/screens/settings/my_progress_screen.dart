@@ -22,16 +22,40 @@ class _MyProgressScreenState extends State<MyProgressScreen> {
     _load();
   }
 
+  // Future<void> _load() async {
+  //   try {
+  //     final raw = await ApiService.getCompletedActions();
+  //     final all = raw
+  //         .map((a) => ActionItem.fromJson(a as Map<String, dynamic>))
+  //         .toList();
+  //     if (mounted) {
+  //       setState(() {
+  //         _completed = all.where((a) => a.isCompleted).toList();
+  //         _pendingCount = all.where((a) => !a.isCompleted).length;
+  //         _loading = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         _error = 'Could not load progress.';
+  //         _loading = false;
+  //       });
+  //     }
+  //   }
+  // }
   Future<void> _load() async {
     try {
-      final raw = await ApiService.getActions();
-      final all = raw
+      final raw = await ApiService.getCompletedActions();
+
+      final completed = raw
           .map((a) => ActionItem.fromJson(a as Map<String, dynamic>))
           .toList();
+
       if (mounted) {
         setState(() {
-          _completed = all.where((a) => a.isCompleted).toList();
-          _pendingCount = all.where((a) => !a.isCompleted).length;
+          _completed = completed;
+          _pendingCount = 0; // no need to calculate anymore
           _loading = false;
         });
       }
