@@ -1,4 +1,3 @@
-import 'package:finpath/models/onboarding_option.dart';
 import 'package:finpath/models/onboarding_options_response.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';

@@ -145,8 +145,8 @@ class ApiService {
       body: jsonEncode({
         'name': name,
         'language': language,
-        if (email != null) 'email': email,
-        if (password != null) 'password': password,
+        'email': ?email,
+        'password': ?password,
       }),
     );
 
@@ -182,7 +182,7 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'email': email,
-        if (password != null) 'password': password,
+        'password': ?password,
       }),
     );
 
@@ -318,6 +318,21 @@ class ApiService {
     }
 
     return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  static Future<void> updateLanguage(String language) async {
+    final res = await _authorizedPatch(
+      '/profile',
+      body: {'language': language},
+    );
+
+    if (res.statusCode == 401) {
+      throw Exception('Session expired. Please log in again.');
+    }
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('Failed to update language.');
+    }
   }
 
   // ---------------------------

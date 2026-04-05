@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../services/app_state.dart';
 import '../../services/auth_service.dart';
 import '../welcome_screen.dart';
+import 'my_progress_screen.dart';
 import 'resources_screen.dart';
 
 class SettingsSheet extends StatefulWidget {
@@ -173,7 +174,12 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       _MenuItem(
                         icon: Icons.trending_up_rounded,
                         label: t('My Progress', 'Mi Progreso'),
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyProgressScreen(),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.language_rounded,
@@ -383,10 +389,13 @@ class _LanguageDialogState extends State<_LanguageDialog> {
           child: Text(_selected == 'es' ? 'Cancelar' : 'Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             widget.appState.setLanguage(_selected);
             AuthService.saveLanguage(_selected);
             Navigator.pop(context);
+            try {
+              await ApiService.updateLanguage(_selected);
+            } catch (_) {}
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1A7A6E),

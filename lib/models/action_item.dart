@@ -8,6 +8,7 @@ class ActionItem {
   final String resourceId;
   final int priority;
   bool isCompleted;
+  final DateTime? completedAt;
 
   ActionItem({
     required this.id,
@@ -19,11 +20,18 @@ class ActionItem {
     required this.resourceId,
     required this.priority,
     this.isCompleted = false,
+    this.completedAt,
   });
 
   factory ActionItem.fromJson(Map<String, dynamic> json) {
     // backend uses 'key' (string) as identifier, no numeric id
     final keyStr = json['key'] as String? ?? '';
+
+    final completedAtRaw = json['completed_at'] as String?;
+    DateTime? completedAt;
+    if (completedAtRaw != null) {
+      completedAt = DateTime.tryParse(completedAtRaw);
+    }
 
     return ActionItem(
       id: keyStr,
@@ -35,6 +43,7 @@ class ActionItem {
       priority: json['priority'] ?? 1,
       resourceId: json['resource_id'] ?? '',
       isCompleted: json['completed'] ?? json['is_completed'] ?? false,
+      completedAt: completedAt,
     );
   }
 }

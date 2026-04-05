@@ -70,7 +70,7 @@ class ActionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final actions = appState.actions;
-    final t = (String en, String es) => _t(context, en, es);
+    String t(String en, String es) => _t(context, en, es);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2EDE4),
