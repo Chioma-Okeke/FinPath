@@ -13,6 +13,125 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+  Widget _buildStepScaffold({
+    required int step,
+    required String category,
+    required String title,
+    required String subtitle,
+    required Widget content,
+    required bool canProceed,
+    String? infoTitle,
+    String? infoBody,
+    IconData infoIcon = Icons.lightbulb_outline,
+  }) {
+    return Column(
+      children: [
+        LinearProgressIndicator(
+          value: step / _totalPages,
+          backgroundColor: Colors.grey[200],
+          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A7A6E)),
+          minHeight: 6,
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8EDF2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF3A4A5C),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A),
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[600],
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                content,
+                if (infoTitle != null && infoBody != null) ...[
+                  const SizedBox(height: 28),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F3EE),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          infoIcon,
+                          color: const Color(0xFFE8A020),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                infoTitle,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                infoBody,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+        _buildBottomNav(canProceed: canProceed),
+      ],
+    );
+  }
+
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _isLoading = false;
@@ -182,45 +301,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final isLifeSituationStep = _currentPage == 0;
 
-    final showStepInAppBar = _currentPage == 3 || _currentPage == 5;
     final appBar = AppBar(
       backgroundColor: Colors.white,
       elevation: 0.5,
-      leading: IconButton(
-        icon: const Icon(Icons.close, color: Color(0xFF333333)),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
+
       automaticallyImplyLeading: false,
-      centerTitle: !showStepInAppBar,
       title: Text(
-        _t('Financial Journey', 'Camino Financiero'),
+        _t('FinPath', 'FinPath'),
         style: const TextStyle(
           color: Color(0xFF1A1A1A),
           fontWeight: FontWeight.w700,
           fontSize: 17,
         ),
       ),
-      actions: showStepInAppBar
-          ? [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Center(
-                  child: Text(
-                    _t(
-                      'STEP ${_currentPage + 1} OF 6',
-                      'PASO ${_currentPage + 1} DE 6',
-                    ),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A7A6E),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Center(
+            child: Text(
+              _t(
+                'STEP ${_currentPage + 1} OF 6',
+                'PASO ${_currentPage + 1} DE 6',
               ),
-            ]
-          : null,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A7A6E),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
 
     return Scaffold(
@@ -257,221 +369,312 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   IconData _lifeSituationIcon(String key) {
     if (key.contains('student')) return Icons.school_rounded;
-    if (key.contains('working_professional') || key == 'employed') return Icons.work_rounded;
-    if (key.contains('graduated') || key.contains('graduate')) return Icons.emoji_events_rounded;
-    if (key.contains('new_to_country') || key.contains('immigrant')) return Icons.flight_land_rounded;
-    if (key.contains('self_employ') || key.contains('gig') || key.contains('freelance')) return Icons.handyman_rounded;
-    if (key.contains('family') || key.contains('staying')) return Icons.home_rounded;
+    if (key.contains('working_professional') || key == 'employed')
+      return Icons.work_rounded;
+    if (key.contains('graduated') || key.contains('graduate'))
+      return Icons.emoji_events_rounded;
+    if (key.contains('new_to_country') || key.contains('immigrant'))
+      return Icons.flight_land_rounded;
+    if (key.contains('self_employ') ||
+        key.contains('gig') ||
+        key.contains('freelance'))
+      return Icons.handyman_rounded;
+    if (key.contains('family') || key.contains('staying'))
+      return Icons.home_rounded;
     return Icons.person_rounded;
   }
 
+  // Widget _buildLifeSituationPage() {
+  //   final options = _options!.lifeSituations;
+
+  //   return Column(
+  //     children: [
+  //       // Step indicator
+  //       Container(
+  //         color: Colors.white,
+  //         padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               children: [
+  //                 Text(
+  //                   _t('STEP 1 OF 6', 'PASO 1 DE 6'),
+  //                   style: const TextStyle(
+  //                     fontSize: 12,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Color(0xFF1A7A6E),
+  //                     letterSpacing: 0.5,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 8),
+  //             LinearProgressIndicator(
+  //               value: 1 / _totalPages,
+  //               backgroundColor: Colors.grey[200],
+  //               valueColor: const AlwaysStoppedAnimation<Color>(
+  //                 Color(0xFF1A7A6E),
+  //               ),
+  //               minHeight: 4,
+  //               borderRadius: BorderRadius.circular(4),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+
+  //       // Scrollable content
+  //       Expanded(
+  //         child: SingleChildScrollView(
+  //           padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 _t(
+  //                   'What does your current life situation look like?',
+  //                   '¿Cómo es tu situación de vida actual?',
+  //                 ),
+  //                 style: const TextStyle(
+  //                   fontSize: 26,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: Color(0xFF1A1A1A),
+  //                   height: 1.25,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 10),
+  //               Text(
+  //                 _t(
+  //                   'This helps us tailor your financial sanctuary to the specific challenges and opportunities of your journey. You can select multiple options.',
+  //                   'Esto nos ayuda a personalizar tu santuario financiero. Puedes seleccionar múltiples opciones.',
+  //                 ),
+  //                 style: TextStyle(
+  //                   fontSize: 14,
+  //                   color: Colors.grey[600],
+  //                   height: 1.5,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 24),
+
+  //               // Option cards
+  //               ...options.map((opt) {
+  //                 final key = opt.value;
+  //                 final isSelected = _lifeSituations.contains(key);
+  //                 final isStudent =
+  //                     key == 'full_time_student' || key == 'student_working';
+  //                 final isImmigrant = key == 'new_to_country';
+
+  //                 return _buildLifeSituationCard(
+  //                   key: key,
+  //                   label: opt.label(widget.language),
+  //                   isSelected: isSelected,
+  //                   onTap: () {
+  //                     setState(() {
+  //                       if (isSelected) {
+  //                         _lifeSituations.remove(key);
+  //                         if (isStudent && !_studentSelected) {
+  //                           _isInternational = false;
+  //                           _countryOfOrigin = null;
+  //                           _countrySearchController.clear();
+  //                         }
+  //                         if (isImmigrant) {
+  //                           _countryOfOrigin = null;
+  //                           _entryRoute = null;
+  //                           _countrySearchController.clear();
+  //                         }
+  //                       } else {
+  //                         _lifeSituations.add(key);
+  //                       }
+  //                     });
+  //                   },
+  //                   subOptions: isSelected
+  //                       ? isStudent
+  //                             ? _buildStudentSubOptions()
+  //                             : isImmigrant
+  //                             ? _buildImmigrantSubOptions()
+  //                             : null
+  //                       : null,
+  //                 );
+  //               }),
+
+  //               const SizedBox(height: 16),
+
+  //               // Private & Protected card
+  //               Container(
+  //                 padding: const EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: const Color(0xFFE8F5F2),
+  //                   borderRadius: BorderRadius.circular(12),
+  //                 ),
+  //                 child: Row(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     const Icon(
+  //                       Icons.lock_outline,
+  //                       color: Color(0xFF1A7A6E),
+  //                       size: 20,
+  //                     ),
+  //                     const SizedBox(width: 12),
+  //                     Expanded(
+  //                       child: Column(
+  //                         crossAxisAlignment: CrossAxisAlignment.start,
+  //                         children: [
+  //                           Text(
+  //                             _t('Private & Protected', 'Privado y Protegido'),
+  //                             style: const TextStyle(
+  //                               fontWeight: FontWeight.bold,
+  //                               fontSize: 14,
+  //                               color: Color(0xFF1A1A1A),
+  //                             ),
+  //                           ),
+  //                           const SizedBox(height: 4),
+  //                           Text(
+  //                             _t(
+  //                               'We use this information only to provide specialized advice (like international student tax tips or gig economy budgeting). Your data is encrypted and never shared.',
+  //                               'Usamos esta información solo para brindarte consejos especializados. Tus datos están encriptados y nunca se comparten.',
+  //                             ),
+  //                             style: TextStyle(
+  //                               fontSize: 13,
+  //                               color: Colors.grey[600],
+  //                               height: 1.5,
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+
+  //               const SizedBox(height: 20),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+
+  //       // Bottom navigation
+  //       Container(
+  //         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+  //         decoration: BoxDecoration(
+  //           color: Colors.white,
+  //           boxShadow: [
+  //             BoxShadow(
+  //               color: Colors.black.withValues(alpha: 0.06),
+  //               blurRadius: 8,
+  //               offset: const Offset(0, -2),
+  //             ),
+  //           ],
+  //         ),
+  //         child: Row(
+  //           children: [
+  //             TextButton.icon(
+  //               onPressed: _prevPage,
+  //               icon: const Icon(
+  //                 Icons.arrow_back,
+  //                 size: 16,
+  //                 color: Colors.grey,
+  //               ),
+  //               label: Text(
+  //                 _t('BACK', 'ATRÁS'),
+  //                 style: const TextStyle(
+  //                   color: Colors.grey,
+  //                   fontWeight: FontWeight.bold,
+  //                   letterSpacing: 0.5,
+  //                 ),
+  //               ),
+  //             ),
+  //             const Spacer(),
+  //             ElevatedButton.icon(
+  //               onPressed: _lifeSituations.isNotEmpty ? _nextPage : null,
+  //               icon: const Icon(Icons.arrow_forward, size: 16),
+  //               label: Text(
+  //                 _t('CONTINUE', 'CONTINUAR'),
+  //                 style: const TextStyle(
+  //                   fontWeight: FontWeight.bold,
+  //                   letterSpacing: 0.5,
+  //                 ),
+  //               ),
+  //               style: ElevatedButton.styleFrom(
+  //                 backgroundColor: const Color(0xFF1A7A6E),
+  //                 foregroundColor: Colors.white,
+  //                 disabledBackgroundColor: Colors.grey[300],
+  //                 padding: const EdgeInsets.symmetric(
+  //                   horizontal: 24,
+  //                   vertical: 14,
+  //                 ),
+  //                 shape: RoundedRectangleBorder(
+  //                   borderRadius: BorderRadius.circular(30),
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
   Widget _buildLifeSituationPage() {
     final options = _options!.lifeSituations;
 
-    return Column(
-      children: [
-        // Step indicator
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    _t('STEP 1 OF 6', 'PASO 1 DE 6'),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A7A6E),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _t('Progress: 16%', 'Progreso: 16%'),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: 1 / _totalPages,
-                backgroundColor: Colors.grey[200],
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A7A6E)),
-                minHeight: 4,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ],
-          ),
-        ),
+    return _buildStepScaffold(
+      step: 1,
+      category: _t('Life Situation', 'Situación de Vida'),
+      title: _t(
+        'What does your current life situation look like?',
+        '¿Cómo es tu situación de vida actual?',
+      ),
+      subtitle: _t(
+        'This helps us tailor your financial sanctuary to your current journey. You can select multiple options.',
+        'Esto nos ayuda a personalizar tu santuario financiero según tu situación actual. Puedes seleccionar múltiples opciones.',
+      ),
+      canProceed: _lifeSituations.isNotEmpty,
+      infoTitle: _t('Private & Protected', 'Privado y Protegido'),
+      infoBody: _t(
+        'We use this information only to personalize advice for your situation. Your data is encrypted and never shared.',
+        'Usamos esta información solo para personalizar consejos según tu situación. Tus datos están encriptados y nunca se comparten.',
+      ),
+      infoIcon: Icons.lock_outline,
+      content: Column(
+        children: options.map((opt) {
+          final key = opt.value;
+          final isSelected = _lifeSituations.contains(key);
+          final isStudent =
+              key == 'full_time_student' || key == 'student_working';
+          final isImmigrant = key == 'new_to_country';
 
-        // Scrollable content
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _t(
-                    'What does your current life situation look like?',
-                    '¿Cómo es tu situación de vida actual?',
-                  ),
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _t(
-                    'This helps us tailor your financial sanctuary to the specific challenges and opportunities of your journey. You can select multiple options.',
-                    'Esto nos ayuda a personalizar tu santuario financiero. Puedes seleccionar múltiples opciones.',
-                  ),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
-                ),
-                const SizedBox(height: 24),
-
-                // Option cards
-                ...options.map((opt) {
-                  final key = opt.value;
-                  final isSelected = _lifeSituations.contains(key);
-                  final isStudent = key == 'full_time_student' || key == 'student_working';
-                  final isImmigrant = key == 'new_to_country';
-
-                  return _buildLifeSituationCard(
-                    key: key,
-                    label: opt.label(widget.language),
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
-                        if (isSelected) {
-                          _lifeSituations.remove(key);
-                          if (isStudent && !_studentSelected) {
-                            _isInternational = false;
-                            _countryOfOrigin = null;
-                            _countrySearchController.clear();
-                          }
-                          if (isImmigrant) {
-                            _countryOfOrigin = null;
-                            _entryRoute = null;
-                            _countrySearchController.clear();
-                          }
-                        } else {
-                          _lifeSituations.add(key);
-                        }
-                      });
-                    },
-                    subOptions: isSelected
-                        ? isStudent
-                            ? _buildStudentSubOptions()
-                            : isImmigrant
-                                ? _buildImmigrantSubOptions()
-                                : null
-                        : null,
-                  );
-                }),
-
-                const SizedBox(height: 16),
-
-                // Private & Protected card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5F2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.lock_outline, color: Color(0xFF1A7A6E), size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _t('Private & Protected', 'Privado y Protegido'),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Color(0xFF1A1A1A),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _t(
-                                'We use this information only to provide specialized advice (like international student tax tips or gig economy budgeting). Your data is encrypted and never shared.',
-                                'Usamos esta información solo para brindarte consejos especializados. Tus datos están encriptados y nunca se comparten.',
-                              ),
-                              style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.5),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ),
-
-        // Bottom navigation
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              TextButton.icon(
-                onPressed: _prevPage,
-                icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
-                label: Text(
-                  _t('BACK', 'ATRÁS'),
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: _lifeSituations.isNotEmpty ? _nextPage : null,
-                icon: const Icon(Icons.arrow_forward, size: 16),
-                label: Text(
-                  _t('CONTINUE', 'CONTINUAR'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A7A6E),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+          return _buildLifeSituationCard(
+            key: key,
+            label: opt.label(widget.language),
+            isSelected: isSelected,
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  _lifeSituations.remove(key);
+                  if (isStudent && !_studentSelected) {
+                    _isInternational = false;
+                    _countryOfOrigin = null;
+                    _countrySearchController.clear();
+                  }
+                  if (isImmigrant) {
+                    _countryOfOrigin = null;
+                    _entryRoute = null;
+                    _countrySearchController.clear();
+                  }
+                } else {
+                  _lifeSituations.add(key);
+                }
+              });
+            },
+            subOptions: isSelected
+                ? isStudent
+                      ? _buildStudentSubOptions()
+                      : isImmigrant
+                      ? _buildImmigrantSubOptions()
+                      : null
+                : null,
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -485,57 +688,64 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A7A6E) : const Color(0xFFE0E0E0),
+            color: isSelected
+                ? const Color(0xFF1A7A6E)
+                : const Color(0xFFE8E8E8),
             width: isSelected ? 2 : 1,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFD6EDE9) : const Color(0xFFF0F0F0),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _lifeSituationIcon(key),
-                      color: isSelected ? const Color(0xFF1A7A6E) : Colors.grey[600],
-                      size: 22,
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFFD6EDE9)
+                        : const Color(0xFFF0F3F5),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
+                  child: Icon(
+                    _lifeSituationIcon(key),
+                    color: isSelected
+                        ? const Color(0xFF1A7A6E)
+                        : const Color(0xFF5E6B78),
+                    size: 26,
                   ),
-                  const SizedBox(width: 12),
-                  Icon(
-                    isSelected ? Icons.check_circle : Icons.circle_outlined,
-                    color: isSelected ? const Color(0xFF1A7A6E) : Colors.grey[400],
-                    size: 24,
-                  ),
-                ],
+                ),
+                const Spacer(),
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected
+                      ? const Color(0xFF1A7A6E)
+                      : Colors.grey[400],
+                  size: 24,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
               ),
             ),
             if (subOptions != null) ...[
+              const SizedBox(height: 16),
               Divider(height: 1, color: Colors.grey[200]),
+              const SizedBox(height: 12),
               subOptions,
             ],
           ],
@@ -570,7 +780,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onTap: () => setState(() => _isInternational = true),
               ),
               _buildStatusChip(
-                label: _t('Citizen / permanent resident', 'Ciudadano / residente permanente'),
+                label: _t(
+                  'Citizen / permanent resident',
+                  'Ciudadano / residente permanente',
+                ),
                 selected: !_isInternational,
                 onTap: () => setState(() {
                   _isInternational = false;
@@ -635,10 +848,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             decoration: InputDecoration(
               hintText: _t('Search country...', 'Buscar país...'),
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-              suffixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+              suffixIcon: const Icon(
+                Icons.search,
+                color: Colors.grey,
+                size: 20,
+              ),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -649,10 +869,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF1A7A6E), width: 1.5),
+                borderSide: const BorderSide(
+                  color: Color(0xFF1A7A6E),
+                  width: 1.5,
+                ),
               ),
             ),
-            onChanged: (v) => setState(() => _countryOfOrigin = v.trim().isEmpty ? null : v.trim()),
+            onChanged: (v) => setState(
+              () => _countryOfOrigin = v.trim().isEmpty ? null : v.trim(),
+            ),
           ),
           const SizedBox(height: 14),
           Text(
@@ -670,7 +895,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             decoration: InputDecoration(
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -681,7 +909,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF1A7A6E), width: 1.5),
+                borderSide: const BorderSide(
+                  color: Color(0xFF1A7A6E),
+                  width: 1.5,
+                ),
               ),
             ),
             hint: Text(
@@ -689,7 +920,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: TextStyle(color: Colors.grey[400], fontSize: 14),
             ),
             items: entryRoutes
-                .map((r) => DropdownMenuItem(value: r.value, child: Text(r.label(widget.language))))
+                .map(
+                  (r) => DropdownMenuItem(
+                    value: r.value,
+                    child: Text(r.label(widget.language)),
+                  ),
+                )
                 .toList(),
             onChanged: (v) => setState(() => _entryRoute = v),
           ),
@@ -703,15 +939,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   IconData _incomeIcon(String key) {
     if (key.contains('full_time')) return Icons.work_rounded;
     if (key.contains('part_time')) return Icons.work_outline_rounded;
-    if (key.contains('freelance') || key.contains('gig')) return Icons.devices_rounded;
-    if (key.contains('government') || key.contains('welfare') || key.contains('benefit')) return Icons.account_balance_rounded;
+    if (key.contains('freelance') || key.contains('gig'))
+      return Icons.devices_rounded;
+    if (key.contains('government') ||
+        key.contains('welfare') ||
+        key.contains('benefit'))
+      return Icons.account_balance_rounded;
     if (key.contains('unemployment')) return Icons.support_agent_rounded;
-    if (key.contains('family') || key.contains('parents') || key.contains('allowance')) return Icons.people_rounded;
-    if (key.contains('scholarship') || key.contains('stipend') || key.contains('student_aid')) return Icons.school_rounded;
-    if (key.contains('invest') || key.contains('dividend')) return Icons.trending_up_rounded;
-    if (key.contains('rental') || key.contains('property')) return Icons.home_rounded;
-    if (key.contains('social_security') || key.contains('disability')) return Icons.health_and_safety_rounded;
-    if (key.contains('no_income') || key.contains('none')) return Icons.block_rounded;
+    if (key.contains('family') ||
+        key.contains('parents') ||
+        key.contains('allowance'))
+      return Icons.people_rounded;
+    if (key.contains('scholarship') ||
+        key.contains('stipend') ||
+        key.contains('student_aid'))
+      return Icons.school_rounded;
+    if (key.contains('invest') || key.contains('dividend'))
+      return Icons.trending_up_rounded;
+    if (key.contains('rental') || key.contains('property'))
+      return Icons.home_rounded;
+    if (key.contains('social_security') || key.contains('disability'))
+      return Icons.health_and_safety_rounded;
+    if (key.contains('no_income') || key.contains('none'))
+      return Icons.block_rounded;
     return Icons.attach_money_rounded;
   }
 
@@ -724,43 +974,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A7A6E) : Colors.grey[300]!,
+            color: isSelected
+                ? const Color(0xFF1A7A6E)
+                : const Color(0xFFE8E8E8),
             width: isSelected ? 2 : 1,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(_incomeIcon(key), color: Colors.grey[600], size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: const Color(0xFF222222),
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFFD6EDE9)
+                        : const Color(0xFFF0F3F5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _incomeIcon(key),
+                    color: isSelected
+                        ? const Color(0xFF1A7A6E)
+                        : const Color(0xFF5E6B78),
+                    size: 26,
+                  ),
                 ),
-              ),
+                const Spacer(),
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected
+                      ? const Color(0xFF1A7A6E)
+                      : Colors.grey[400],
+                  size: 24,
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Icon(
-              isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? const Color(0xFF1A7A6E) : Colors.grey[400],
-              size: 24,
+            const SizedBox(height: 16),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
             ),
           ],
         ),
@@ -771,233 +1037,93 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildIncomeSourcesPage() {
     final options = _options!.incomeSources;
 
-    return Column(
-      children: [
-        // Step indicator
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return _buildStepScaffold(
+      step: 2,
+      category: _t('Income Profile', 'Perfil de Ingresos'),
+      title: _t(
+        'Where does your money come from?',
+        '¿De dónde viene tu dinero?',
+      ),
+      subtitle: _t(
+        'Select all sources that apply to your current financial situation.',
+        'Selecciona todas las fuentes que apliquen a tu situación financiera actual.',
+      ),
+      canProceed: _incomeSources.isNotEmpty,
+      infoTitle: _t('Why we ask', '¿Por qué preguntamos?'),
+      infoBody: _t(
+        'Your income sources help us identify benefits, savings opportunities, and financial guidance tailored to your situation.',
+        'Tus fuentes de ingresos nos ayudan a identificar beneficios, oportunidades de ahorro y orientación financiera adaptada a tu situación.',
+      ),
+      content: Column(
+        children: [
+          ...options.map((opt) {
+            final key = opt.value;
+            final isSelected = _incomeSources.contains(key);
+
+            return _buildIncomeCard(
+              key: key,
+              label: opt.display(widget.language),
+              isSelected: isSelected,
+              onTap: () {
+                setState(() {
+                  if (key == 'no_income') {
+                    if (!isSelected) {
+                      _incomeSources
+                        ..clear()
+                        ..add('no_income');
+                    } else {
+                      _incomeSources.remove('no_income');
+                    }
+                    return;
+                  }
+
+                  if (!isSelected) {
+                    _incomeSources.remove('no_income');
+                    _incomeSources.add(key);
+                  } else {
+                    _incomeSources.remove(key);
+                  }
+                });
+              },
+            );
+          }),
+          if (_hasFullAndPartTime) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3CD),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFFD54F)),
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    _t('STEP 2 OF 6', 'PASO 2 DE 6'),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A7A6E),
-                      letterSpacing: 0.5,
-                    ),
+                  const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF7A5C00),
+                    size: 18,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '— ${_t('Income Profile', 'Perfil de Ingresos')}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _t(
+                        'You selected both full-time and part-time income.',
+                        'Seleccionaste ingresos de tiempo completo y medio tiempo.',
+                      ),
+                      style: const TextStyle(
+                        color: Color(0xFF7A5C00),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: 2 / _totalPages,
-                backgroundColor: Colors.grey[200],
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)),
-                minHeight: 5,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ],
-          ),
-        ),
-
-        // Scrollable content
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Text(
-                      _t('Where does your money come from?', '¿De dónde viene tu dinero?'),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _t(
-                        'Select all sources that apply to your current financial situation. This helps us tailor your sanctuary of stability.',
-                        'Selecciona todas las fuentes que apliquen a tu situación financiera actual. Esto nos ayuda a personalizar tu santuario de estabilidad.',
-                      ),
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Income source cards
-                    ...options.map((opt) {
-                      final key = opt.value;
-                      final isSelected = _incomeSources.contains(key);
-                      return _buildIncomeCard(
-                        key: key,
-                        label: opt.display(widget.language),
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() {
-                            if (key == 'no_income') {
-                              if (!isSelected) {
-                                _incomeSources
-                                  ..clear()
-                                  ..add('no_income');
-                              } else {
-                                _incomeSources.remove('no_income');
-                              }
-                              return;
-                            }
-                            if (!isSelected) {
-                              _incomeSources.remove('no_income');
-                              _incomeSources.add(key);
-                            } else {
-                              _incomeSources.remove(key);
-                            }
-                          });
-                        },
-                      );
-                    }),
-
-                    // "Why we ask" info card
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFFBF0),
-                        borderRadius: BorderRadius.circular(12),
-                        border: const Border(
-                          left: BorderSide(color: Color(0xFFE8B84B), width: 4),
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.lightbulb_outline, color: Color(0xFFE8B84B), size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF555555), height: 1.5),
-                                children: [
-                                  TextSpan(
-                                    text: _t('Why we ask: ', '¿Por qué preguntamos? '),
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF333333)),
-                                  ),
-                                  TextSpan(
-                                    text: _t(
-                                      'Your income sources help us identify specific tax benefits or savings programs that might apply to your unique professional situation.',
-                                      'Tus fuentes de ingresos nos ayudan a identificar beneficios fiscales o programas de ahorro específicos para tu situación profesional.',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    if (_hasFullAndPartTime) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3CD),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFFD54F)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.info_outline, color: Color(0xFF7A5C00), size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _t(
-                                  'You selected both full-time and part-time — we\'ll make sure your coverage reflects both.',
-                                  'Seleccionaste tiempo completo y medio tiempo — revisaremos tu cobertura para ambos.',
-                                ),
-                                style: const TextStyle(
-                                  color: Color(0xFF7A5C00),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
             ),
-          ),
-        ),
-
-        // Bottom navigation
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              TextButton.icon(
-                onPressed: _prevPage,
-                icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
-                label: Text(
-                  _t('BACK', 'ATRÁS'),
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: _incomeSources.isNotEmpty ? _nextPage : null,
-                icon: const Icon(Icons.arrow_forward, size: 16),
-                label: Text(
-                  _t('CONTINUE', 'CONTINUAR'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A7A6E),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+          ],
+        ],
+      ),
     );
   }
 
@@ -1006,21 +1132,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   (IconData, String, String) _housingInfo(String key) {
     // Returns (icon, subtitle_en, subtitle_es)
     if (key.contains('rent')) {
-      return (Icons.apartment_rounded, 'Apartment, flat, or rented house.', 'Apartamento, piso o casa alquilada.');
+      return (
+        Icons.apartment_rounded,
+        'Apartment, flat, or rented house.',
+        'Apartamento, piso o casa alquilada.',
+      );
     }
     if (key.contains('own') || key.contains('homeown')) {
-      return (Icons.home_rounded, 'I own my current residence.', 'Soy propietario de mi residencia actual.');
+      return (
+        Icons.home_rounded,
+        'I own my current residence.',
+        'Soy propietario de mi residencia actual.',
+      );
     }
-    if (key.contains('famil') || key.contains('parent') || key.contains('shared')) {
-      return (Icons.people_rounded, "Shared household or parent's home.", 'Hogar compartido o casa de los padres.');
+    if (key.contains('famil') ||
+        key.contains('parent') ||
+        key.contains('shared')) {
+      return (
+        Icons.people_rounded,
+        "Shared household or parent's home.",
+        'Hogar compartido o casa de los padres.',
+      );
     }
     if (key.contains('dorm') || key.contains('student')) {
-      return (Icons.school_rounded, 'Student housing or dormitory.', 'Residencia estudiantil o dormitorio.');
+      return (
+        Icons.school_rounded,
+        'Student housing or dormitory.',
+        'Residencia estudiantil o dormitorio.',
+      );
     }
     if (key.contains('shelter') || key.contains('homeless')) {
-      return (Icons.night_shelter_rounded, 'Temporary shelter or transitional housing.', 'Albergue temporal o vivienda de transición.');
+      return (
+        Icons.night_shelter_rounded,
+        'Temporary shelter or transitional housing.',
+        'Albergue temporal o vivienda de transición.',
+      );
     }
-    return (Icons.other_houses_rounded, 'Temporary housing or unique situations.', 'Vivienda temporal o situaciones únicas.');
+    return (
+      Icons.other_houses_rounded,
+      'Temporary housing or unique situations.',
+      'Vivienda temporal o situaciones únicas.',
+    );
   }
 
   Widget _buildHousingCard({
@@ -1076,208 +1228,56 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 12),
             if (isSelected)
-              const Icon(Icons.check_circle, color: Color(0xFF1A7A6E), size: 24),
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF1A7A6E),
+                size: 24,
+              ),
           ],
         ),
       ),
     );
   }
-
   Widget _buildHousingPage() {
     final options = _options!.housingTypes;
 
-    return Column(
-      children: [
-        // Step indicator
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    _t('Step 3 of 6', 'Paso 3 de 6'),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A7A6E),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _t('Housing', 'Vivienda'),
-                    style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: 3 / _totalPages,
-                backgroundColor: Colors.grey[200],
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)),
-                minHeight: 5,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ],
-          ),
-        ),
-
-        // Scrollable content
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Text(
-                      _t('Where do you currently live?', '¿Dónde vives actualmente?'),
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                        height: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _t(
-                        "This helps us determine if you need renter's or homeowner's coverage.",
-                        'Esto nos ayuda a determinar si necesitas cobertura de inquilino o propietario.',
-                      ),
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Housing option cards
-                    ...options.map((opt) => _buildHousingCard(
-                      key: opt.value,
-                      label: opt.display(widget.language),
-                      isSelected: _housingType == opt.value,
-                      onTap: () => setState(() => _housingType = opt.value),
-                    )),
-
-                    const SizedBox(height: 8),
-
-                    // Full amber "Why we ask" card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5A623).withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _t('Why we ask', '¿Por qué preguntamos?'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  _t(
-                                    'Your living situation significantly impacts your monthly obligations. We use this to calculate a more accurate wellness score tailored to your lifestyle.',
-                                    'Tu situación de vivienda impacta significativamente tus obligaciones mensuales. Usamos esto para calcular un puntaje de bienestar más preciso adaptado a tu estilo de vida.',
-                                  ),
-                                  style: const TextStyle(fontSize: 13, color: Colors.white, height: 1.5),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Bottom navigation
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              TextButton.icon(
-                onPressed: _prevPage,
-                icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
-                label: Text(
-                  _t('BACK', 'ATRÁS'),
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: _housingType != null ? _nextPage : null,
-                icon: const Icon(Icons.arrow_forward, size: 16),
-                label: Text(
-                  _t('CONTINUE', 'CONTINUAR'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A7A6E),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return _buildStepScaffold(
+      step: 3,
+      category: _t('Housing', 'Vivienda'),
+      title: _t('Where do you currently live?', '¿Dónde vives actualmente?'),
+      subtitle: _t(
+        "This helps us understand whether renter's or homeowner's protection may matter for you.",
+        'Esto nos ayuda a entender si la protección para inquilinos o propietarios puede ser importante para ti.',
+      ),
+      canProceed: _housingType != null,
+      infoTitle: _t('Why we ask', '¿Por qué preguntamos?'),
+      infoBody: _t(
+        'Your housing situation affects your monthly obligations and the kind of protection or budgeting guidance you may need.',
+        'Tu situación de vivienda afecta tus obligaciones mensuales y el tipo de protección u orientación financiera que puedes necesitar.',
+      ),
+      content: Column(
+        children: options.map((opt) {
+          return _buildHousingCard(
+            key: opt.value,
+            label: opt.display(widget.language),
+            isSelected: _housingType == opt.value,
+            onTap: () => setState(() => _housingType = opt.value),
+          );
+        }).toList(),
+      ),
     );
   }
-
   // ─── Q4: Health Insurance ─────────────────────────────────────────────────
 
   Widget _buildHealthInsurancePage() {
@@ -1300,7 +1300,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               children: [
                 // Category chip
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8EDF2),
                     borderRadius: BorderRadius.circular(20),
@@ -1334,7 +1337,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     'A health gap is often the highest-cost risk. Protecting your physical health is the foundation of long-term wealth preservation.',
                     'Una brecha de salud suele ser el riesgo de mayor costo. Proteger tu salud física es la base de la preservación de la riqueza a largo plazo.',
                   ),
-                  style: TextStyle(fontSize: 15, color: Colors.grey[600], height: 1.6),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[600],
+                    height: 1.6,
+                  ),
                 ),
                 const SizedBox(height: 28),
 
@@ -1376,7 +1383,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.lightbulb, color: Color(0xFFE8A020), size: 22),
+                      const Icon(
+                        Icons.lightbulb,
+                        color: Color(0xFFE8A020),
+                        size: 22,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -1396,7 +1407,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 'Medical debt is the #1 cause of bankruptcy. We factor this into your "Safety Net" calculations to ensure you\'re truly prepared for life\'s surprises.',
                                 'La deuda médica es la causa #1 de bancarrota. Lo incluimos en el cálculo de tu "Red de Seguridad" para asegurarte de estar verdaderamente preparado.',
                               ),
-                              style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.5),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                                height: 1.5,
+                              ),
                             ),
                           ],
                         ),
@@ -1428,7 +1443,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               TextButton.icon(
                 onPressed: _prevPage,
-                icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  size: 16,
+                  color: Colors.grey,
+                ),
                 label: Text(
                   _t('BACK', 'ATRÁS'),
                   style: const TextStyle(
@@ -1444,13 +1463,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 icon: const Icon(Icons.arrow_forward, size: 16),
                 label: Text(
                   _t('CONTINUE', 'CONTINUAR'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A7A6E),
                   foregroundColor: Colors.white,
                   disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -1481,7 +1506,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A7A6E) : const Color(0xFFE8E8E8),
+            color: isSelected
+                ? const Color(0xFF1A7A6E)
+                : const Color(0xFFE8E8E8),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1509,7 +1536,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(height: 6),
             Text(
               description,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -1567,7 +1598,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: LinearProgressIndicator(
                   value: 5 / _totalPages,
                   backgroundColor: Colors.grey[300],
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A7A6E)),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF1A7A6E),
+                  ),
                   minHeight: 7,
                 ),
               ),
@@ -1610,7 +1643,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                       // Title
                       Text(
-                        _t('Do you have auto insurance?', '¿Tienes seguro de auto?'),
+                        _t(
+                          'Do you have auto insurance?',
+                          '¿Tienes seguro de auto?',
+                        ),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 26,
@@ -1642,7 +1678,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         iconColor: Colors.white,
                         iconBgColor: const Color(0xFF2A2A2A),
                         label: _t('Yes', 'Sí'),
-                        sublabel: _t("I'm currently covered", 'Estoy cubierto actualmente'),
+                        sublabel: _t(
+                          "I'm currently covered",
+                          'Estoy cubierto actualmente',
+                        ),
                         isSelected: _autoAnswer == 'yes',
                         onTap: () => setState(() => _autoAnswer = 'yes'),
                       ),
@@ -1710,7 +1749,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _t('SECURE VERIFICATION', 'VERIFICACIÓN SEGURA'),
+                                  _t(
+                                    'SECURE VERIFICATION',
+                                    'VERIFICACIÓN SEGURA',
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -1750,7 +1792,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               TextButton.icon(
                 onPressed: _prevPage,
-                icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  size: 16,
+                  color: Colors.grey,
+                ),
                 label: Text(
                   _t('BACK', 'ATRÁS'),
                   style: const TextStyle(
@@ -1766,13 +1812,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 icon: const Icon(Icons.arrow_forward, size: 16),
                 label: Text(
                   _t('CONTINUE', 'CONTINUAR'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A7A6E),
                   foregroundColor: Colors.white,
                   disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -1870,7 +1922,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       const SizedBox(width: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFB2E8D8),
                           borderRadius: BorderRadius.circular(20),
@@ -1892,7 +1947,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 LinearProgressIndicator(
                   value: 1.0,
                   backgroundColor: Colors.grey[200],
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A7A6E)),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF1A7A6E),
+                  ),
                   minHeight: 5,
                 ),
                 const SizedBox(height: 28),
@@ -1977,7 +2034,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                               ),
                               TextSpan(
-                                text: _t('\$1,000 starter goal', 'una meta inicial de \$1,000'),
+                                text: _t(
+                                  '\$1,000 starter goal',
+                                  'una meta inicial de \$1,000',
+                                ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -2029,8 +2089,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                           Text(
-                            _t('Small deposits add up quickly.', 'Los pequeños depósitos suman rápido.'),
-                            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                            _t(
+                              'Small deposits add up quickly.',
+                              'Los pequeños depósitos suman rápido.',
+                            ),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
@@ -2062,10 +2128,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 color: Colors.white,
                                 letterSpacing: 1.0,
                                 shadows: [
-                                  Shadow(
-                                    color: Colors.black54,
-                                    blurRadius: 6,
-                                  ),
+                                  Shadow(color: Colors.black54, blurRadius: 6),
                                 ],
                               ),
                             ),
@@ -2099,7 +2162,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               TextButton.icon(
                 onPressed: _prevPage,
-                icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  size: 16,
+                  color: Colors.grey,
+                ),
                 label: Text(
                   _t('BACK', 'ATRÁS'),
                   style: const TextStyle(
@@ -2115,13 +2182,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 icon: const Icon(Icons.arrow_forward, size: 16),
                 label: Text(
                   _t('CONTINUE', 'CONTINUAR'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A7A6E),
                   foregroundColor: Colors.white,
                   disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -2170,7 +2243,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
@@ -2182,10 +2259,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF1A7A6E) : Colors.grey[400]!,
+                  color: isSelected
+                      ? const Color(0xFF1A7A6E)
+                      : Colors.grey[400]!,
                   width: 2,
                 ),
-                color: isSelected ? const Color(0xFF1A7A6E) : Colors.transparent,
+                color: isSelected
+                    ? const Color(0xFF1A7A6E)
+                    : Colors.transparent,
               ),
               child: isSelected
                   ? const Icon(Icons.check, color: Colors.white, size: 14)
@@ -2193,6 +2274,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav({required bool canProceed}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          TextButton.icon(
+            onPressed: _prevPage,
+            icon: const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+            label: Text(
+              _t('BACK', 'ATRÁS'),
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const Spacer(),
+          ElevatedButton.icon(
+            onPressed: canProceed ? _nextPage : null,
+            icon: const Icon(Icons.arrow_forward, size: 16),
+            label: Text(
+              _t('CONTINUE', 'CONTINUAR'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1A7A6E),
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.grey[300],
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2212,9 +2346,15 @@ class _RoadPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     // Sky
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height * 0.55), skyPaint);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height * 0.55),
+      skyPaint,
+    );
     // Ground
-    canvas.drawRect(Rect.fromLTWH(0, size.height * 0.55, size.width, size.height * 0.45), groundPaint);
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height * 0.55, size.width, size.height * 0.45),
+      groundPaint,
+    );
 
     // Road (trapezoid perspective)
     final roadPath = Path()
@@ -2257,15 +2397,31 @@ class _SavingsJarPainter extends CustomPainter {
 
     // Bokeh circles (light flares)
     final bokhPaint = Paint()..color = const Color(0x33FFD700);
-    canvas.drawCircle(Offset(size.width * 0.15, size.height * 0.3), 36, bokhPaint);
-    canvas.drawCircle(Offset(size.width * 0.75, size.height * 0.15), 22, bokhPaint);
-    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.7), 18,
-        bokhPaint..color = const Color(0x22FFFFFF));
+    canvas.drawCircle(
+      Offset(size.width * 0.15, size.height * 0.3),
+      36,
+      bokhPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.75, size.height * 0.15),
+      22,
+      bokhPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.85, size.height * 0.7),
+      18,
+      bokhPaint..color = const Color(0x22FFFFFF),
+    );
 
     // Jar body
     final jarPaint = Paint()..color = const Color(0xBBD4E8CC);
     final jarRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.35, size.height * 0.28, size.width * 0.3, size.height * 0.58),
+      Rect.fromLTWH(
+        size.width * 0.35,
+        size.height * 0.28,
+        size.width * 0.3,
+        size.height * 0.58,
+      ),
       const Radius.circular(8),
     );
     canvas.drawRRect(jarRect, jarPaint);
@@ -2274,7 +2430,12 @@ class _SavingsJarPainter extends CustomPainter {
     final lidPaint = Paint()..color = const Color(0xCCA0B8A0);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.33, size.height * 0.22, size.width * 0.34, size.height * 0.09),
+        Rect.fromLTWH(
+          size.width * 0.33,
+          size.height * 0.22,
+          size.width * 0.34,
+          size.height * 0.09,
+        ),
         const Radius.circular(4),
       ),
       lidPaint,
@@ -2302,9 +2463,12 @@ class _SavingsJarPainter extends CustomPainter {
     final stemPath = Path()
       ..moveTo(size.width * 0.5, size.height * 0.28)
       ..cubicTo(
-        size.width * 0.5, size.height * 0.1,
-        size.width * 0.5, size.height * 0.05,
-        size.width * 0.5, size.height * 0.02,
+        size.width * 0.5,
+        size.height * 0.1,
+        size.width * 0.5,
+        size.height * 0.05,
+        size.width * 0.5,
+        size.height * 0.02,
       );
     canvas.drawPath(stemPath, stemPaint);
 
@@ -2313,25 +2477,37 @@ class _SavingsJarPainter extends CustomPainter {
     final leftLeaf = Path()
       ..moveTo(size.width * 0.5, size.height * 0.15)
       ..quadraticBezierTo(
-        size.width * 0.28, size.height * 0.08,
-        size.width * 0.3, size.height * 0.2,
+        size.width * 0.28,
+        size.height * 0.08,
+        size.width * 0.3,
+        size.height * 0.2,
       )
-      ..quadraticBezierTo(size.width * 0.4, size.height * 0.18, size.width * 0.5, size.height * 0.15);
+      ..quadraticBezierTo(
+        size.width * 0.4,
+        size.height * 0.18,
+        size.width * 0.5,
+        size.height * 0.15,
+      );
     canvas.drawPath(leftLeaf, leafPaint);
 
     // Right leaf
     final rightLeaf = Path()
       ..moveTo(size.width * 0.5, size.height * 0.1)
       ..quadraticBezierTo(
-        size.width * 0.72, size.height * 0.03,
-        size.width * 0.7, size.height * 0.18,
+        size.width * 0.72,
+        size.height * 0.03,
+        size.width * 0.7,
+        size.height * 0.18,
       )
-      ..quadraticBezierTo(size.width * 0.6, size.height * 0.14, size.width * 0.5, size.height * 0.1);
+      ..quadraticBezierTo(
+        size.width * 0.6,
+        size.height * 0.14,
+        size.width * 0.5,
+        size.height * 0.1,
+      );
     canvas.drawPath(rightLeaf, leafPaint);
   }
 
   @override
   bool shouldRepaint(_SavingsJarPainter oldDelegate) => false;
 }
-
-
