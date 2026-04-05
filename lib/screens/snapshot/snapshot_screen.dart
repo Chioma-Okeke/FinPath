@@ -293,7 +293,7 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _t('WELLNESS SCORE', 'PUNTAJE DE BIENESTAR'),
+                      _t('RISK SCORE', 'PUNTUACIÓN DE RIESGO'),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -315,8 +315,8 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
             ),
             child: Text(
               _t(
-                'Overall Wellness Score: $score/100',
-                'Puntaje de Bienestar General: $score/100',
+                'Overall Risk Score: $score/100',
+                'Puntuación de riesgo General: $score/100',
               ),
               style: const TextStyle(
                 color: Colors.white,
