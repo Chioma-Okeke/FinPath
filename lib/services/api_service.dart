@@ -306,6 +306,20 @@ class ApiService {
   }
 
   // ---------------------------
+  // User
+  // ---------------------------
+
+  static Future<Map<String, dynamic>> getMe() async {
+    final res = await _authorizedGet('/auth/me');
+
+    if (res.statusCode == 401) {
+      throw Exception('Session expired. Please log in again.');
+    }
+
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  // ---------------------------
   // Meta
   // ---------------------------
 

@@ -7,14 +7,28 @@ class AppState extends ChangeNotifier {
   Snapshot? _snapshot;
   List<ActionItem> _actions = [];
   bool _onboardingComplete = false;
+  String _userName = '';
+  String _employmentType = '';
 
   String get language => _language;
   Snapshot? get snapshot => _snapshot;
   List<ActionItem> get actions => _actions;
   bool get onboardingComplete => _onboardingComplete;
+  String get userName => _userName;
+  String get employmentType => _employmentType;
 
   void setLanguage(String lang) {
     _language = lang;
+    notifyListeners();
+  }
+
+  void setUserName(String name) {
+    _userName = name;
+    notifyListeners();
+  }
+
+  void setEmploymentType(String type) {
+    _employmentType = type;
     notifyListeners();
   }
 

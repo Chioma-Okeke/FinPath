@@ -81,7 +81,17 @@ class _AuthScreenState extends State<AuthScreen> {
       await AuthService.saveUserProfileStatus(res['has_profile'] ?? false);
 
       if (!mounted) return;
-      context.read<AppState>().setLanguage(widget.language);
+      final appState = context.read<AppState>();
+      appState.setLanguage(widget.language);
+
+      final resolvedName = (res['name'] as String?)?.trim() ??
+          (_isSignUp ? _nameController.text.trim() : '');
+      if (resolvedName.isNotEmpty) appState.setUserName(resolvedName);
+
+      final empType = res['employment_type'] as String?;
+      if (empType != null && empType.isNotEmpty) {
+        appState.setEmploymentType(empType);
+      }
 
       if (_isSignUp || !hasProfile) {
         Navigator.pushReplacement(

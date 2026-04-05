@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../services/app_state.dart';
 import '../actions/actions_screen.dart';
 import '../ai/ai_assistant_sheet.dart';
+import '../settings/settings_sheet.dart';
 
 class SnapshotScreen extends StatefulWidget {
   const SnapshotScreen({super.key});
@@ -59,7 +60,6 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
   String _t(String en, String es) => _isSpanish ? es : en;
 
   void _onNavTap(int index) {
-    if (index == _navIndex) return;
     if (index == 1) {
       Navigator.push(
         context,
@@ -71,16 +71,15 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
       _showAIAssistant(context);
       return;
     }
+    if (index == 3) {
+      SettingsSheet.show(context);
+      return;
+    }
     setState(() => _navIndex = index);
   }
 
   void _showAIAssistant(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const AIAssistantSheet(),
-    );
+    AIAssistantSheet.open(context);
   }
 
   @override
@@ -90,10 +89,10 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF4F5F0),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Color(0xFF1A1A1A), size: 26),
-          onPressed: () {},
-        ),
+        // leading: IconButton(
+        //   icon: const Icon(Icons.menu, color: Color(0xFF1A1A1A), size: 26),
+        //   onPressed: () {},
+        // ),
         title: const Text(
           'FinPath',
           style: TextStyle(
@@ -103,25 +102,25 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 16),
+          //   child: GestureDetector(
+          //     onTap: () {},
+          //     child: Container(
+          //       width: 40,
+          //       height: 40,
+          //       decoration: BoxDecoration(
+          //         color: Colors.grey[300],
+          //         shape: BoxShape.circle,
+          //       ),
+          //       child: const Icon(
+          //         Icons.person_rounded,
+          //         color: Colors.white,
+          //         size: 24,
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       body: _isLoading
@@ -250,7 +249,7 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
           const SizedBox(height: 20),
 
           // Community Goal card
-          _buildCommunityGoalCard(urgentAction),
+          // _buildCommunityGoalCard(urgentAction),
         ],
       ),
     );
