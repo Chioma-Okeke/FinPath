@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../services/app_state.dart';
 import '../../services/auth_service.dart';
 import '../welcome_screen.dart';
+import 'resources_screen.dart';
 
 class SettingsSheet extends StatefulWidget {
   const SettingsSheet({super.key});
@@ -187,7 +188,12 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       _MenuItem(
                         icon: Icons.menu_book_rounded,
                         label: t('Resources', 'Recursos'),
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ResourcesScreen(),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.help_rounded,

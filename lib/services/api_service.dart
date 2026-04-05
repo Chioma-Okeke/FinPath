@@ -320,6 +320,32 @@ class ApiService {
   }
 
   // ---------------------------
+  // Resources
+  // ---------------------------
+
+  static Future<List<dynamic>> getResources() async {
+    final res = await _authorizedGet('/resources');
+
+    if (res.statusCode == 401) {
+      throw Exception('Session expired. Please log in again.');
+    }
+
+    final decoded = jsonDecode(res.body);
+
+    if (decoded is List) return decoded;
+
+    if (decoded is Map<String, dynamic>) {
+      for (final key in ['resources', 'data', 'items', 'results']) {
+        if (decoded[key] is List) {
+          return decoded[key] as List<dynamic>;
+        }
+      }
+    }
+
+    return [];
+  }
+
+  // ---------------------------
   // Meta
   // ---------------------------
 
