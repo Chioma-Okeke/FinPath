@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../main.dart';
 import '../../models/snapshot.dart';
 import '../../models/action_item.dart';
 import '../../services/api_service.dart';
@@ -16,7 +17,7 @@ class SnapshotScreen extends StatefulWidget {
   State<SnapshotScreen> createState() => _SnapshotScreenState();
 }
 
-class _SnapshotScreenState extends State<SnapshotScreen> {
+class _SnapshotScreenState extends State<SnapshotScreen> with RouteAware {
   bool _isLoading = true;
   String? _error;
   int _navIndex = 0;
@@ -25,6 +26,35 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when returning to this screen from any route pushed on top of it
+    _silentRefresh();
+  }
+
+  Future<void> _silentRefresh() async {
+    try {
+      final snapshotData = await ApiService.getSnapshot();
+      final actionsData = await ApiService.getActions();
+      if (!mounted) return;
+      final appState = context.read<AppState>();
+      appState.setSnapshot(Snapshot.fromJson(snapshotData));
+      appState.setActions(actionsData.map((a) => ActionItem.fromJson(a)).toList());
+    } catch (_) {}
   }
 
   Future<void> _loadData() async {

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'services/api_service.dart';
 import 'services/app_state.dart';
 import 'services/auth_service.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/snapshot/snapshot_screen.dart';
+
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 void main() {
   runApp(
@@ -29,6 +33,7 @@ class FinPathApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      navigatorObservers: [routeObserver],
       home: const _AuthGate(),
       builder: (context, child) =>
           Directionality(textDirection: TextDirection.ltr, child: child!),
@@ -52,20 +57,37 @@ class _AuthGateState extends State<_AuthGate> {
 
   Future<void> _resolve() async {
     final isLoggedIn = await AuthService.isLoggedIn();
-    final hasProfile = isLoggedIn && await AuthService.getUserProfileStatus();
     final lang = await AuthService.getLanguage();
 
     if (!mounted) return;
-
     context.read<AppState>().setLanguage(lang);
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            (isLoggedIn && hasProfile) ? const SnapshotScreen() : const WelcomeScreen(),
-      ),
-    );
+    if (!isLoggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      );
+      return;
+    }
+
+    // Verify token and get fresh profile status from the API
+    try {
+      final me = await ApiService.getMe();
+      final hasProfile = me['has_profile'] == true;
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => hasProfile ? const SnapshotScreen() : const WelcomeScreen(),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      );
+    }
   }
 
   @override
