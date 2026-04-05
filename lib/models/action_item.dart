@@ -5,6 +5,7 @@ class ActionItem {
   final String description;
   final String educationCard;
   final String? productLink;
+  final String resourceId;
   final int priority;
   bool isCompleted;
 
@@ -15,6 +16,7 @@ class ActionItem {
     required this.description,
     required this.educationCard,
     this.productLink,
+    required this.resourceId,
     required this.priority,
     this.isCompleted = false,
   });
@@ -31,6 +33,7 @@ class ActionItem {
       educationCard: json['education_card'] ?? '',
       productLink: json['statefarm_product'] ?? json['product_link'],
       priority: json['priority'] ?? 1,
+      resourceId: json['resource_id'] ?? '',
       isCompleted: json['completed'] ?? json['is_completed'] ?? false,
     );
   }

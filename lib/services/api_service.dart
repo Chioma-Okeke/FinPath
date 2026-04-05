@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:finpath/models/onboarding_options_response.dart';
+import 'package:finpath/models/resource.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
@@ -343,6 +344,20 @@ class ApiService {
     }
 
     return [];
+  }
+
+  static Future<Resource> getResource(String resourceId) async {
+    final res = await _authorizedGet('/resources/$resourceId');
+
+    if (res.statusCode == 401) {
+      throw Exception('Session expired. Please log in again.');
+    }
+
+    if (res.statusCode != 200) {
+      throw Exception('Resource not found');
+    }
+
+    return Resource.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   // ---------------------------

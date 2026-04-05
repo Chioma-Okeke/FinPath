@@ -203,6 +203,7 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
         description: '',
         educationCard: '',
         priority: 1,
+        resourceId: ''
       ),
     );
 

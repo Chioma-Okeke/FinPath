@@ -41,7 +41,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
       final name = user?['name'] as String?;
       final situations = (profile?['life_situations'] as List<dynamic>?)
-          ?.map((e) => e.toString())
+          ?.map((e) => e.toString().split("_").join(" "))
           .toList();
 
       if (!mounted) return;
