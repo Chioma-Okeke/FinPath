@@ -28,12 +28,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void markActionComplete(int actionId) {
-    final idx = _actions.indexWhere((a) => a.id == actionId);
-    if (idx != -1) {
-      _actions[idx].isCompleted = true;
-      notifyListeners();
+  void markActionComplete(String key) {
+    for (var action in actions) {
+      if (action.key == key) {
+        action.isCompleted = true;
+        break;
+      }
     }
+    notifyListeners();
   }
 
   void setOnboardingComplete(bool value) {

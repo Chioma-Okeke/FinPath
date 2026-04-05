@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/snapshot.dart';
@@ -17,6 +18,7 @@ class SnapshotScreen extends StatefulWidget {
 class _SnapshotScreenState extends State<SnapshotScreen> {
   bool _isLoading = true;
   String? _error;
+  int _navIndex = 0;
 
   @override
   void initState() {
@@ -32,15 +34,8 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
     try {
       final snapshotData = await ApiService.getSnapshot();
       final actionsData = await ApiService.getActions();
-      // print(" snapshot");
-      // print(snapshotData);
-
-      // print(actionsData);
-      // print("actionsData");
-
       debugPrint('SNAPSHOT RESPONSE: $snapshotData');
       debugPrint('ACTIONS RESPONSE: $actionsData');
-
       if (!mounted) return;
       final appState = context.read<AppState>();
       appState.setSnapshot(Snapshot.fromJson(snapshotData));
@@ -61,45 +56,106 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
   }
 
   bool get _isSpanish => context.read<AppState>().language == 'es';
-
   String _t(String en, String es) => _isSpanish ? es : en;
 
-  Color _riskColor(String level) {
-    switch (level) {
-      case 'Critical':
-        return Colors.red[700]!;
-      case 'High':
-        return Colors.orange[700]!;
-      case 'Medium':
-        return Colors.amber[700]!;
-      default:
-        return Colors.green[700]!;
+  void _onNavTap(int index) {
+    if (index == _navIndex) return;
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ActionsScreen()),
+      );
+      return;
     }
+    if (index == 2) {
+      _showAIAssistant(context);
+      return;
+    }
+    setState(() => _navIndex = index);
+  }
+
+  void _showAIAssistant(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const AIAssistantSheet(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: const Color(0xFFF4F5F0),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D3B66),
-        foregroundColor: Colors.white,
-        title: Text(_t('My Financial Snapshot', 'Mi Perfil Financiero')),
+        backgroundColor: const Color(0xFFF4F5F0),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Color(0xFF1A1A1A), size: 26),
+          onPressed: () {},
+        ),
+        title: const Text(
+          'FinPath',
+          style: TextStyle(
+            color: Color(0xFF1A7A6E),
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+          ),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: GestureDetector(
+              onTap: () {},
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF1A7A6E)))
           : _error != null
-          ? _buildError()
-          : _buildContent(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAIAssistant(context),
-        backgroundColor: const Color(0xFFE8B84B),
-        foregroundColor: const Color(0xFF0D3B66),
-        icon: const Icon(Icons.smart_toy_outlined),
-        label: Text(_t('Ask FinPath AI', 'Pregunta a FinPath AI')),
+              ? _buildError()
+              : _buildContent(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _navIndex,
+        onTap: _onNavTap,
+        selectedItemColor: const Color(0xFF1A7A6E),
+        unselectedItemColor: Colors.grey[500],
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home_rounded),
+            label: _t('Home', 'Inicio'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.format_list_bulleted_rounded),
+            label: _t('Actions', 'Acciones'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            label: _t('Chat', 'Chat'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings_outlined),
+            label: _t('Settings', 'Ajustes'),
+          ),
+        ],
       ),
     );
   }
@@ -121,6 +177,10 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A7A6E),
+                foregroundColor: Colors.white,
+              ),
               child: Text(_t('Try again', 'Intentar de nuevo')),
             ),
           ],
@@ -134,276 +194,450 @@ class _SnapshotScreenState extends State<SnapshotScreen> {
     final snapshot = appState.snapshot;
     if (snapshot == null) return const SizedBox.shrink();
 
+    final actions = appState.actions;
+    final urgentAction = actions.firstWhere(
+      (a) => !a.isCompleted,
+      orElse: () => ActionItem(
+        id: '',
+        key: '',
+        title: 'Gig Liability',
+        description: '',
+        educationCard: '',
+        priority: 1,
+      ),
+    );
+
     return RefreshIndicator(
       onRefresh: _loadData,
+      color: const Color(0xFF1A7A6E),
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          _buildRiskCard(snapshot),
-          const SizedBox(height: 16),
-          _buildCoverageGrid(snapshot),
-          const SizedBox(height: 16),
-          _buildActionPlanPreview(appState.actions),
-          const SizedBox(height: 80),
+          // Welcome header
+          Text(
+            _t('Welcome back', 'Bienvenido de nuevo'),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _t(
+              'Your financial sanctuary is looking stable today.',
+              'Tu santuario financiero se ve estable hoy.',
+            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 24),
+
+          // Wellness score card
+          _buildWellnessCard(snapshot),
+          const SizedBox(height: 28),
+
+          // Financial Health Breakdown
+          Text(
+            _t('Financial Health Breakdown', 'Resumen de Salud Financiera'),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildCoverageList(snapshot),
+          const SizedBox(height: 20),
+
+          // Community Goal card
+          _buildCommunityGoalCard(urgentAction),
         ],
       ),
     );
   }
 
-  Widget _buildRiskCard(Snapshot snapshot) {
-    final color = _riskColor(snapshot.riskLevel);
+  // ─── Wellness Score Card ────────────────────────────────────────────────────
+
+  Widget _buildWellnessCard(Snapshot snapshot) {
+    final score = snapshot.riskScore.clamp(0, 100);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF3F1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(200, 200),
+                  painter: _WellnessGaugePainter(score: score.toDouble()),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$score',
+                      style: const TextStyle(
+                        fontSize: 56,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1A1A),
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _t('WELLNESS SCORE', 'PUNTAJE DE BIENESTAR'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A7A6E),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Text(
+              _t(
+                'Overall Wellness Score: $score/100',
+                'Puntaje de Bienestar General: $score/100',
+              ),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Coverage List ──────────────────────────────────────────────────────────
+
+  Widget _buildCoverageList(Snapshot snapshot) {
+    final items = snapshot.coverageStatus.entries.toList();
+    return Column(
+      children: items.map((entry) {
+        return _buildCoverageItem(
+          label: entry.key,
+          covered: entry.value,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCoverageItem({required String label, required bool covered}) {
+    final key = label.toLowerCase();
+    final isBuilding = !covered &&
+        (key.contains('emergency') || key.contains('fund') || key.contains('saving'));
+
+    final Color iconBg;
+    final Color iconColor;
+    final IconData icon;
+    final String statusLabel;
+    final Color statusBg;
+    final Color statusText;
+    final String sublabel;
+
+    if (covered) {
+      iconBg = const Color(0xFF1A7A6E);
+      iconColor = Colors.white;
+      icon = Icons.check_rounded;
+      statusLabel = _t('COVERED', 'CUBIERTO');
+      statusBg = const Color(0xFFE8F5F2);
+      statusText = const Color(0xFF1A7A6E);
+      sublabel = _t('Policy Active', 'Póliza Activa');
+    } else if (isBuilding) {
+      iconBg = const Color(0xFFF5A623);
+      iconColor = Colors.white;
+      icon = Icons.error_rounded;
+      statusLabel = _t('BUILDING', 'EN PROGRESO');
+      statusBg = const Color(0xFFFFF4E0);
+      statusText = const Color(0xFFA06000);
+      sublabel = _t('3 months target', 'Meta de 3 meses');
+    } else {
+      iconBg = const Color(0xFFE85C4A);
+      iconColor = Colors.white;
+      icon = Icons.cancel_rounded;
+      statusLabel = _t('ACTION REQUIRED', 'ACCIÓN REQUERIDA');
+      statusBg = const Color(0xFFE85C4A);
+      statusText = Colors.white;
+      sublabel = _t('Missing - Action Required', 'Faltante - Acción Requerida');
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _t('Your Risk Score', 'Tu Puntuación de Riesgo'),
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${snapshot.riskScore}',
-                style: TextStyle(
-                  fontSize: 56,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    snapshot.riskLevel,
-                    style: TextStyle(color: color, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (snapshot.biggestRisk.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.red,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      snapshot.biggestRisk,
-                      style: const TextStyle(color: Colors.red, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCoverageGrid(Snapshot snapshot) {
-    final coverage = snapshot.coverageStatus;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _t('Coverage Status', 'Estado de Cobertura'),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0D3B66),
-          ),
-        ),
-        const SizedBox(height: 12),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 2.2,
-          children: coverage.entries.map((entry) {
-            final covered = entry.value;
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: covered ? Colors.green[50] : Colors.red[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: covered ? Colors.green[200]! : Colors.red[200]!,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    covered ? Icons.check_circle : Icons.cancel,
-                    color: covered ? Colors.green : Colors.red,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      entry.key,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: covered ? Colors.green[800] : Colors.red[800],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionPlanPreview(List<ActionItem> actions) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _t('Your Next Steps', 'Tus Próximos Pasos'),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0D3B66),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ActionsScreen()),
-              ),
-              child: Text(_t('See all', 'Ver todo')),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ...actions
-            .take(3)
-            .map(
-              (action) =>
-                  _ActionPreviewTile(action: action, isSpanish: _isSpanish),
-            ),
-      ],
-    );
-  }
-
-  void _showAIAssistant(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const AIAssistantSheet(),
-    );
-  }
-}
-
-class _ActionPreviewTile extends StatelessWidget {
-  final ActionItem action;
-  final bool isSpanish;
-
-  const _ActionPreviewTile({required this.action, required this.isSpanish});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0D3B66),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '${action.priority}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  sublabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: covered ? Colors.grey[600] : (isBuilding ? Colors.grey[600] : const Color(0xFFE85C4A)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Text(
-              action.title,
+              statusLabel,
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: action.isCompleted
-                    ? Colors.grey
-                    : const Color(0xFF333333),
-                decoration: action.isCompleted
-                    ? TextDecoration.lineThrough
-                    : null,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: statusText,
               ),
             ),
           ),
-          if (action.isCompleted)
-            const Icon(Icons.check_circle, color: Colors.green, size: 20),
         ],
       ),
     );
   }
+
+  // ─── Community Goal Card ────────────────────────────────────────────────────
+
+  Widget _buildCommunityGoalCard(ActionItem urgentAction) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDCEBED),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _t('Community Goal', 'Meta Comunitaria'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _t(
+                    'Join 42 others in your area securing their ${urgentAction.title} this month.',
+                    'Únete a 42 personas en tu área que aseguran su ${urgentAction.title} este mes.',
+                  ),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ActionsScreen()),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A5C52),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    _t('Explore Options', 'Explorar Opciones'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // People illustration
+          SizedBox(
+            width: 90,
+            height: 90,
+            child: CustomPaint(painter: _PeopleIllustrationPainter()),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Wellness Gauge Painter ────────────────────────────────────────────────────
+
+class _WellnessGaugePainter extends CustomPainter {
+  final double score;
+  const _WellnessGaugePainter({required this.score});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 14;
+    const startAngle = 3 * pi / 4;   // ~7 o'clock
+    const totalSweep = 3 * pi / 2;   // 270°
+
+    // Background track
+    final trackPaint = Paint()
+      ..color = Colors.grey[300]!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 16
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      totalSweep,
+      false,
+      trackPaint,
+    );
+
+    // Filled arc
+    final fillPaint = Paint()
+      ..color = const Color(0xFF1A7A6E)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 16
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      totalSweep * (score / 100),
+      false,
+      fillPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_WellnessGaugePainter old) => old.score != score;
+}
+
+// ─── People Illustration Painter ──────────────────────────────────────────────
+
+class _PeopleIllustrationPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final teal = Paint()..color = const Color(0xFF1A7A6E);
+    final amber = Paint()..color = const Color(0xFFF5A623);
+    final skin = Paint()..color = const Color(0xFFE8B89A);
+    final green = Paint()..color = const Color(0xFF4CAF50);
+
+    // Ground
+    final ground = Paint()..color = const Color(0xFFB8D4CC);
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height * 0.8, size.width, size.height * 0.2),
+      ground,
+    );
+
+    // Plant left
+    canvas.drawRect(
+      Rect.fromLTWH(size.width * 0.05, size.height * 0.5, 4, size.height * 0.3),
+      green,
+    );
+    canvas.drawOval(
+      Rect.fromLTWH(0, size.height * 0.3, size.width * 0.18, size.height * 0.25),
+      green,
+    );
+
+    // Person 1 (left, teal shirt)
+    canvas.drawCircle(
+      Offset(size.width * 0.28, size.height * 0.28),
+      size.width * 0.1,
+      skin,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(size.width * 0.18, size.height * 0.42, size.width * 0.2, size.height * 0.32),
+      teal,
+    );
+
+    // Person 2 (middle, amber shirt)
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.22),
+      size.width * 0.1,
+      skin,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(size.width * 0.4, size.height * 0.36, size.width * 0.2, size.height * 0.36),
+      amber,
+    );
+
+    // Person 3 (right, teal shirt)
+    canvas.drawCircle(
+      Offset(size.width * 0.75, size.height * 0.28),
+      size.width * 0.1,
+      skin,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(size.width * 0.65, size.height * 0.42, size.width * 0.2, size.height * 0.32),
+      teal,
+    );
+
+    // Plant right
+    canvas.drawRect(
+      Rect.fromLTWH(size.width * 0.88, size.height * 0.5, 4, size.height * 0.3),
+      green,
+    );
+    canvas.drawOval(
+      Rect.fromLTWH(size.width * 0.78, size.height * 0.3, size.width * 0.18, size.height * 0.25),
+      green,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PeopleIllustrationPainter old) => false;
 }

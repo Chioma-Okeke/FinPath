@@ -106,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _submitOnboarding() async {
     setState(() => _isLoading = true);
     try {
-      final token = await AuthService.getToken();
+      final token = await AuthService.getAccessToken();
       if (token == null) {
         // Fallback: register anonymously if no token yet
         // final regRes = await ApiService.register('User', widget.language);

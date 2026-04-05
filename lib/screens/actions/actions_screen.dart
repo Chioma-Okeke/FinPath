@@ -65,9 +65,9 @@ class _ActionCardState extends State<_ActionCard> {
   Future<void> _markComplete() async {
     setState(() => _isLoading = true);
     try {
-      await ApiService.completeAction(widget.action.id);
+      await ApiService.completeAction(widget.action.key);
       if (!mounted) return;
-      context.read<AppState>().markActionComplete(widget.action.id);
+      context.read<AppState>().markActionComplete(widget.action.key);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

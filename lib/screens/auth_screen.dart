@@ -72,16 +72,16 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
-      await AuthService.saveToken(token.toString());
+      final hasProfile = res['has_profile'] == true;
 
-      final rawUserId = res['user_id'] ?? res['id'] ?? 0;
-      await AuthService.saveUserId(rawUserId.toString());
+      await AuthService.saveAccessToken(res['access_token']);
+      await AuthService.saveRefreshToken(res['refresh_token']);
+      await AuthService.saveUserId(res['user_id'].toString());
+      await AuthService.saveLanguage(res['language'] ?? 'en');
+      await AuthService.saveUserProfileStatus(res['has_profile'] ?? false);
 
       if (!mounted) return;
       context.read<AppState>().setLanguage(widget.language);
-
-      final hasProfile = res['has_profile'] == true;
-      await AuthService.saveUserProfileStatus(hasProfile);
 
       if (_isSignUp || !hasProfile) {
         Navigator.pushReplacement(

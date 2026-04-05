@@ -1,5 +1,5 @@
 class ActionItem {
-  final int id;
+  final String id;
   final String key;
   final String title;
   final String description;
@@ -22,12 +22,9 @@ class ActionItem {
   factory ActionItem.fromJson(Map<String, dynamic> json) {
     // backend uses 'key' (string) as identifier, no numeric id
     final keyStr = json['key'] as String? ?? '';
-    final id = json['id'] is int
-        ? json['id'] as int
-        : keyStr.hashCode;
 
     return ActionItem(
-      id: id,
+      id: keyStr,
       key: keyStr,
       title: json['title'] ?? '',
       description: json['description'] ?? '',

@@ -1,27 +1,36 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
-  static const _storage = FlutterSecureStorage();
-  static const _tokenKey = 'jwt_token';
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+
+  static const _accessTokenKey = 'access_token';
+  static const _refreshTokenKey = 'refresh_token';
   static const _userIdKey = 'user_id';
   static const _languageKey = 'language';
-  static const _hasProfileKey = "false";
+  static const _hasProfileKey = 'has_profile';
 
-  static Future<void> saveToken(String token) async {
-    await _storage.write(key: _tokenKey, value: token);
+  static Future<void> saveAccessToken(String token) async {
+    await _storage.write(key: _accessTokenKey, value: token);
   }
 
-  static Future<String?> getToken() async {
-    return await _storage.read(key: _tokenKey);
+  static Future<void> saveRefreshToken(String token) async {
+    await _storage.write(key: _refreshTokenKey, value: token);
   }
 
-  static Future<void> saveUserId(String id) async {
-    await _storage.write(key: _userIdKey, value: id.toString());
+  static Future<String?> getAccessToken() async {
+    return await _storage.read(key: _accessTokenKey);
   }
 
-  static Future<int?> getUserId() async {
-    final val = await _storage.read(key: _userIdKey);
-    return val != null ? int.tryParse(val) : null;
+  static Future<String?> getRefreshToken() async {
+    return await _storage.read(key: _refreshTokenKey);
+  }
+
+  static Future<void> saveUserId(String userId) async {
+    await _storage.write(key: _userIdKey, value: userId);
+  }
+
+  static Future<String?> getUserId() async {
+    return await _storage.read(key: _userIdKey);
   }
 
   static Future<void> saveLanguage(String lang) async {
@@ -32,20 +41,8 @@ class AuthService {
     return await _storage.read(key: _languageKey) ?? 'en';
   }
 
-  static Future<bool> isLoggedIn() async {
-    final token = await getToken();
-    return token != null;
-  }
-
-  static Future<void> logout() async {
-    await _storage.deleteAll();
-  }
-
   static Future<void> saveUserProfileStatus(bool hasProfile) async {
-    await _storage.write(
-      key: _hasProfileKey,
-      value: hasProfile.toString(), // "true" or "false"
-    );
+    await _storage.write(key: _hasProfileKey, value: hasProfile.toString());
   }
 
   static Future<bool> getUserProfileStatus() async {
@@ -53,8 +50,22 @@ class AuthService {
     return val == 'true';
   }
 
-  static Future<int?> getUserProfile() async {
-    final val = await _storage.read(key: _userIdKey);
-    return val != null ? int.tryParse(val) : null;
+  static Future<bool> isLoggedIn() async {
+    final token = await getAccessToken();
+    return token != null && token.isNotEmpty;
   }
+
+  static Future<void> clearAuth() async {
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _userIdKey);
+    await _storage.delete(key: _languageKey);
+    await _storage.delete(key: _hasProfileKey);
+  }
+
+  static Future<void> logout() async {
+    await clearAuth();
+  }
+
+  
 }
