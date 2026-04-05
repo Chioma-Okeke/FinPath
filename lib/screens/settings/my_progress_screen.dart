@@ -1,3 +1,4 @@
+import 'package:finpath/screens/actions/actions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/action_item.dart';
@@ -85,7 +86,7 @@ class _MyProgressScreenState extends State<MyProgressScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Financial Sanctuary',
+          'My Progress',
           style: TextStyle(
             color: Color(0xFF1A7A6E),
             fontWeight: FontWeight.bold,
@@ -105,15 +106,6 @@ class _MyProgressScreenState extends State<MyProgressScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               children: [
                 // HISTORY label
-                const Text(
-                  'HISTORY',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.4,
-                    color: Color(0xFF888888),
-                  ),
-                ),
                 const SizedBox(height: 6),
 
                 // Title
@@ -396,7 +388,10 @@ class _MomentumCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ActionsScreen()),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1A7A6E),
                     foregroundColor: Colors.white,
